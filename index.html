@@ -53,29 +53,28 @@
       output.innerHTML = "<p>Loading...</p>";
 
       try {
-        // Change this to your backend URL
         const response = await fetch(`https://lta-api-proxy.onrender.com/bus?stop=${busStopCode}`);
-        
         const data = await response.json();
+
         if (!data.Services || data.Services.length === 0) {
           output.innerHTML = "<p>No upcoming buses found.</p>";
           return;
         }
 
         output.innerHTML = data.Services.map(service => {
-          const nextBus = new Date(service.NextBus.EstimatedArrival);
-          const mins = Math.floor((nextBus - new Date()) / 60000);
-          const load = service.NextBus.Load;
-          const type = service.NextBus.Type;
-          const monitored = service.NextBus.Monitored ? "Live" : "Scheduled";
+          const formatETA = (bus) => {
+            if (!bus || !bus.EstimatedArrival) return 'N/A';
+            const eta = new Date(bus.EstimatedArrival);
+            const mins = Math.floor((eta - new Date()) / 60000);
+            return mins <= 0 ? 'Arr' : `${mins} min`;
+          };
 
           return `
             <div class="bus-info">
               <strong>Bus ${service.ServiceNo}</strong><br />
-              ETA: <span class="arriving">${mins <= 0 ? 'Arr' : mins + ' min'}</span><br />
-              Load: ${load}<br />
-              Type: ${type}<br />
-              Source: ${monitored}
+              1st Bus: <span class="arriving">${formatETA(service.NextBus)}</span><br />
+              2nd Bus: <span class="arriving">${formatETA(service.NextBus2)}</span><br />
+              3rd Bus: <span class="arriving">${formatETA(service.NextBus3)}</span>
             </div>
           `;
         }).join('');
